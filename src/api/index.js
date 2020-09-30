@@ -1,9 +1,16 @@
 const url = 'https://covid19.mathdro.id/api';
 
-export const fetchData = async () => {
+export const fetchData = async (country) => {
+
+    let changebleUrl = url;
+
+    if(country) {
+        changebleUrl = `${url}/countries/${country}`;
+    }
+
     try {
 
-        let response = await fetch(url);
+        let response = await fetch(changebleUrl);
         let data = await response.json();
 
         let modifiedData = {
@@ -20,6 +27,19 @@ export const fetchData = async () => {
     }
 };
 
+
+export const fetchCountries = async () => {
+    try {
+        const response = await fetch(`${url}/countries`);
+        const data = await response.json();
+        const countries = data.countries.map((country) => country.name);
+        console.log(`Countries: ${countries}`);
+        return countries;
+    } catch(error) {
+        console.log(error);
+    }
+}
+
 export const fetchDailyData = async () => {
     try {
         let response = await fetch(`${url}/daily`);
@@ -30,7 +50,7 @@ export const fetchDailyData = async () => {
             deaths: dailyData.deaths.total,
             date: dailyData.reportDate,
         }));
-
+        console.log(`modifiedDailydata: ${modifiedData}`);
         return modifiedData;
     } catch(error) {
         console.log(error);

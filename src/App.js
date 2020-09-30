@@ -9,6 +9,7 @@ class App extends Component {
         super(props);
         this.state = {
             data: {},
+            country: '',
         }
     }
 
@@ -20,14 +21,22 @@ class App extends Component {
         });
     }
 
+    handleCountryChange = async (country) => {
+        console.log(country);
+        let fetchedData = await fetchData(country);
+
+        console.log(fetchedData);
+
+    }
+
     render() {
         const { data } = this.state;
         return (
             <div className={styles.container}>
                 <h1>Covid Tracker App</h1>
                 <Cards data={data} />
+                <CountryPicker handleCountryChange={this.handleCountryChange} />
                 <Chart />
-                <CountryPicker />
             </div>
         );
     };
