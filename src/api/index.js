@@ -1,23 +1,24 @@
-const url = 'https://covid19.mathdro.id/api';
+const url = 'https://api.covid19api.com';
 
 export const fetchData = async (country) => {
 
-    let changebleUrl = url;
-
-    if(country) {
-        changebleUrl = `${url}/countries/${country}`;
-    }
+    let changebleUrl = `${url}/summary`;
 
     try {
 
         let response = await fetch(changebleUrl);
         let data = await response.json();
+        let countryData = data["Global"];
+
+        if(country) {
+            countryData = data["Countries"].find(countryInfo => countryInfo["Slug"] === country);
+        }
 
         let modifiedData = {
-            confirmed: data.confirmed,
-            recovered: data.recovered,
-            deaths: data.deaths,
-            lastUpdate: data.lastUpdate,
+            confirmed: countryData["TotalConfirmed"],
+            recovered: countryData["TotalRecovered"],
+            deaths: countryData["TotalDeaths"],
+            lastUpdate: countryData["Date"] || new Date().toISOString(),
         }
 
         return modifiedData;
@@ -32,23 +33,38 @@ export const fetchCountries = async () => {
     try {
         const response = await fetch(`${url}/countries`);
         const data = await response.json();
-        const countries = data.countries.map((country) => country.name);
-        console.log(`Countries: ${countries}`);
-        return countries;
+        return data.sort((a, b) => {
+            const ConA = a["Country"].toUpperCase();
+            const Conb = b["Country"].toUpperCase();
+
+            let comparison = 0;
+            if(ConA > Conb) {
+                comparison = 1;
+            } else if (ConA < Conb) {
+                comparison = -1;
+            }
+
+            return comparison;
+        });
     } catch(error) {
         console.log(error);
     }
 }
 
-export const fetchDailyData = async () => {
+export const fetchDailyData = async (country) => {
+
+    if(!country) {
+        return;
+    }
+
     try {
-        let response = await fetch(`${url}/daily`);
+        let response = await fetch(`${url}/total/country/${country}`);
         let data = await response.json();
 
         const modifiedData = data.map((dailyData) => ({
-            confirmed: dailyData.confirmed.total,
-            deaths: dailyData.deaths.total,
-            date: dailyData.reportDate,
+            confirmed: dailyData["Confirmed"],
+            deaths: dailyData["Deaths"],
+            date: new Date(dailyData["Date"]).toDateString(),
         }));
         console.log(`modifiedDailydata: ${modifiedData}`);
         return modifiedData;
